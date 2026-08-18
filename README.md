@@ -6,7 +6,7 @@
 
 # English
 
-Desktop app for **Windows 10 / Windows 11**. Given a Word namecard template that uses **WordArt**, it duplicates pages for each name in your list and replaces the WordArt text while preserving layout and styling as much as possible.
+Desktop app for **Windows 7 / Windows 10 / Windows 11**. Given a Word namecard template that uses **WordArt**, it duplicates pages for each name in your list and replaces the WordArt text while preserving layout and styling as much as possible.
 
 The app ships with **two UI languages** (Chinese and English) in one codebase, selected by launch argument or an in-window switch.
 
@@ -26,14 +26,14 @@ The app ships with **two UI languages** (Chinese and English) in one codebase, s
 
 This tool uses **desktop Microsoft Word** COM automation (`pywin32`), so:
 
-- **Windows only** (designed for Win10 / Win11)
+- **Windows only** (Win7 SP1+, Win10, Win11)
 - The PC must have **desktop Word** installed (Office Word; **Word Online is not supported**)
 - Close the template in Word before generating to avoid file locks
 
 For source runs you also need:
 
-- Python **3.9+**
-- Dependencies in `requirements.txt`: `PyQt5`, `pywin32`
+- Python **3.9+** on Win10/Win11 (`requirements.txt`)
+- Python **3.8.x** on Windows 7 (`requirements-win7.txt`) — **Python 3.9+ does not run on Win7**
 
 ## Quick start
 
@@ -44,8 +44,19 @@ For source runs you also need:
 | `run.bat` | Menu to choose Chinese / English UI |
 | `run_zh.bat` | Launch **Chinese UI** |
 | `run_en.bat` | Launch **English UI** |
+| `run_win7.bat` | **Windows 7** menu (Chinese / English) |
+| `run_win7_zh.bat` | Win7 build, **Chinese UI** |
+| `run_win7_en.bat` | Win7 build, **English UI** |
 
 The launcher finds a working Python (project `.venv`, then `D:\myenv`, then PATH) and installs missing dependencies when needed.
+
+### Windows 7 (first-time setup)
+
+1. Install **Python 3.8.x** on the build/run machine  
+2. Double-click `setup_win7.bat` (creates `.venv-win7` with pinned deps)  
+3. Use `run_win7.bat` / `run_win7_zh.bat` / `run_win7_en.bat`
+
+On Win7 the app auto-detects the OS and disables High-DPI scaling; you can also force it with `--compat win7`.
 
 ### Option 2: Command line
 
@@ -79,6 +90,27 @@ NamecardGenerator.exe --lang en
 ```
 
 Without arguments, the UI defaults to Chinese.
+
+### Option 4: Build Windows 7 compatible exe
+
+On a machine with **Python 3.8** installed:
+
+```bat
+setup_win7.bat
+build_win7.bat
+```
+
+Output:
+
+```text
+dist\NamecardGenerator-Win7.exe
+```
+
+Use **PyInstaller 5.x** and **Python 3.8** when building for Win7. The Win10/Win11 exe from `build.bat` is **not** guaranteed to run on Win7.
+
+```bat
+NamecardGenerator-Win7.exe --lang zh
+```
 
 ## How to use
 
@@ -141,8 +173,16 @@ new_ncg/
 ├── run_zh.bat              # Chinese UI shortcut
 ├── run_en.bat              # English UI shortcut
 ├── _env.bat                # Shared: find Python + repair/ensure pip
+├── _env_win7.bat           # Win7: find Python 3.8 only
 ├── _launch.bat             # Shared: call _env, install deps, start app with --lang
+├── _launch_win7.bat        # Win7 launcher (--compat win7)
 ├── build.bat               # Build exe (also uses _env.bat for pip)
+├── build_win7.bat          # Build Win7 exe (Python 3.8 + PyInstaller 5.x)
+├── setup_win7.bat          # Create .venv-win7 for Win7 dev/build
+├── requirements-win7.txt   # Pinned deps for Win7
+├── run_win7.bat            # Win7 language menu
+├── run_win7_zh.bat         # Win7 Chinese UI
+├── run_win7_en.bat         # Win7 English UI
 ├── assets/
 │   ├── app.ico             # Window / exe icon
 │   └── app.png             # Extra artwork
@@ -204,7 +244,7 @@ For office namecards / place cards. Follow your organization’s rules for event
 
 # 中文
 
-面向 **Windows 10 / Windows 11** 的桌面小工具：根据一份带 **WordArt（艺术字）** 的 Word 名签模板，按姓名列表自动复制多页，并逐页替换姓名，同时尽量保持原有版式与样式。
+面向 **Windows 7 / Windows 10 / Windows 11** 的桌面小工具：根据一份带 **WordArt（艺术字）** 的 Word 名签模板，按姓名列表自动复制多页，并逐页替换姓名，同时尽量保持原有版式与样式。
 
 提供 **中文 UI** 与 **英文 UI** 两个界面版本（同一套程序，启动参数不同）。
 
@@ -224,14 +264,14 @@ For office namecards / place cards. Follow your organization’s rules for event
 
 本工具依赖 **Microsoft Word 桌面版** 的 COM 自动化（`pywin32`），因此：
 
-- 仅支持 **Windows**（已在 Win10 / Win11 场景设计）
+- 仅支持 **Windows**（Win7 SP1+、Win10、Win11）
 - 目标电脑必须安装 **桌面版 Word**（Office 套件中的 Word；**不支持** 仅有 Word Online）
 - 生成前请关闭正在打开该模板的 Word，避免文件被占用
 
 开发 / 源码运行额外需要：
 
-- Python **3.9+**
-- 依赖见 `requirements.txt`：`PyQt5`、`pywin32`
+- Win10/Win11：**Python 3.9+**（`requirements.txt`）
+- **Windows 7：Python 3.8.x**（`requirements-win7.txt`）—— **3.9 及以上无法在 Win7 上运行**
 
 ## 快速开始
 
@@ -242,8 +282,19 @@ For office namecards / place cards. Follow your organization’s rules for event
 | `run.bat` | 启动时选择中文 / 英文界面 |
 | `run_zh.bat` | 直接打开 **中文 UI** |
 | `run_en.bat` | 直接打开 **英文 UI** |
+| `run_win7.bat` | **Windows 7** 启动菜单 |
+| `run_win7_zh.bat` | Win7 版 **中文 UI** |
+| `run_win7_en.bat` | Win7 版 **英文 UI** |
 
 脚本会自动寻找可用的 Python（优先项目 `.venv`、本机 `D:\myenv`，再回退到 PATH），缺少依赖时会尝试自动安装。
+
+### Windows 7 首次配置
+
+1. 安装 **Python 3.8.x**  
+2. 双击 `setup_win7.bat`（创建 `.venv-win7` 并安装兼容依赖）  
+3. 使用 `run_win7.bat` / `run_win7_zh.bat` / `run_win7_en.bat`
+
+在 Win7 上程序会自动识别系统并关闭高 DPI 缩放；也可手动加参数 `--compat win7`。
 
 ### 方式二：命令行
 
@@ -277,6 +328,27 @@ NamecardGenerator.exe --lang en
 ```
 
 不传参数时默认中文界面。
+
+### 方式四：打包 Windows 7 兼容 exe
+
+在已安装 **Python 3.8** 的电脑上：
+
+```bat
+setup_win7.bat
+build_win7.bat
+```
+
+输出：
+
+```text
+dist\NamecardGenerator-Win7.exe
+```
+
+Win7 必须用 **Python 3.8 + PyInstaller 5.x** 打包；`build.bat` 生成的 exe **不保证** 能在 Win7 运行。
+
+```bat
+NamecardGenerator-Win7.exe --lang zh
+```
 
 ## 使用步骤
 
@@ -341,8 +413,16 @@ new_ncg/
 ├── run_zh.bat              # 中文 UI 快捷启动
 ├── run_en.bat              # 英文 UI 快捷启动
 ├── _env.bat                # 公共：查找 Python + 修复/确保 pip
+├── _env_win7.bat           # Win7：仅查找 Python 3.8
 ├── _launch.bat             # 公共：调用 _env、装依赖、带 --lang 启动程序
+├── _launch_win7.bat        # Win7 启动（--compat win7）
 ├── build.bat               # 一键打包 exe（同样走 _env.bat，避免 pip 问题）
+├── build_win7.bat          # 打包 Win7 版 exe（Python 3.8 + PyInstaller 5.x）
+├── setup_win7.bat          # 创建 .venv-win7 开发/构建环境
+├── requirements-win7.txt   # Win7 固定版本依赖
+├── run_win7.bat            # Win7 语言选择菜单
+├── run_win7_zh.bat         # Win7 中文界面
+├── run_win7_en.bat         # Win7 英文界面
 ├── assets/
 │   ├── app.ico             # 窗口 / exe 图标
 │   └── app.png             # 附加素材图

@@ -165,6 +165,67 @@ UI = {
 }
 
 
+def is_windows_7() -> bool:
+    """Return True when running on Windows 7."""
+    try:
+        ver = sys.getwindowsversion()
+        return ver.major == 6 and ver.minor == 1
+    except AttributeError:
+        return False
+
+
+def resolve_compat_mode(mode: str) -> bool:
+    """Return True when Win7 compatibility tweaks should be applied."""
+    if mode == "win7":
+        return True
+    if mode == "modern":
+        return False
+    return is_windows_7()
+
+
+def setup_qt_high_dpi(compat_win7: bool) -> None:
+    """Enable High-DPI only on modern Windows (can break layout on Win7)."""
+    if compat_win7:
+        return
+    try:
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+        QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+    except Exception:
+        pass
+
+
+def pick_app_font(compat_win7: bool) -> QFont:
+    """Pick a UI font with fallbacks for older Windows."""
+    families = (
+        "Microsoft YaHei UI",
+        "Microsoft YaHei",
+        "微软雅黑",
+        "SimSun",
+        "Segoe UI",
+        "Tahoma",
+        "Arial",
+    )
+    if compat_win7:
+        families = (
+            "Microsoft YaHei",
+            "微软雅黑",
+            "SimSun",
+            "宋体",
+            "Tahoma",
+            "Arial",
+        )
+
+    for family in families:
+        font = QFont(family)
+        if font.exactMatch():
+            font.setPointSize(11)
+            return font
+
+    font = QFont("Tahoma" if compat_win7 else "Segoe UI")
+    font.setPointSize(11)
+    return font
+
+
 def get_ui(lang: str) -> dict[str, str]:
     return UI["zh" if lang.startswith("zh") else "en"]
 
@@ -650,25 +711,26 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="zh",
         help="UI language: zh (Chinese) or en (English). Default: zh",
     )
+    parser.add_argument(
+        "--compat",
+        choices=("auto", "win7", "modern"),
+        default="auto",
+        help="Compatibility: auto (detect OS), win7, or modern (Win10+). Default: auto",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    compat_win7 = resolve_compat_mode(args.compat)
 
-    # High-DPI friendly on Win10/Win11
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+    setup_qt_high_dpi(compat_win7)
 
     app = QApplication(sys.argv)
     app.setApplicationName("Namecard Generator")
     app.setOrganizationName("NamecardGenerator")
 
-    font = QFont("Microsoft YaHei UI")
-    if not font.exactMatch():
-        font = QFont("Segoe UI")
-    font.setPointSize(11)
-    app.setFont(font)
+    app.setFont(pick_app_font(compat_win7))
 
     window = MainWindow(lang=args.lang)
     window.show()
